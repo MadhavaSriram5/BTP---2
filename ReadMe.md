@@ -35,9 +35,7 @@ Cadence's internal automation scripting language used to programmatically genera
 The complete automated flow executes in non-GUI mode:
 
 ```
-virtuoso -nograph -restore
-    ↓
-create_layout_parameterised_nothardcoded.il (SKILL code)
+LENGTH_OF_MOSFET=200n WIDTH_OF_MOSFET=8u LENGTH_OF_CAP=25u WIDTH_OF_CAP=20u NUMBER_OF_FINGERS=4 virtuoso -nograph -restore create_layout_parameterised_nothardcoded.il (SKILL code)
     ↓
 run_full_flow_with_checks.sh (Orchestration script)
     ↓ 
