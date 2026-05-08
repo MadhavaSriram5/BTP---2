@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is a **BTP (Bachelor Thesis Project)** by **Madhava Sriram (22b1233)** supervised by **Prof. Maryam Shojaei Baghini** with mentors **Moin Shaikh** and **Prajwal**.
+This is a **BTP 2 (Bachelor Thesis Project)** by **Madhava Sriram (22b1233)** supervised by **Prof. Maryam Shojaei Baghini** with mentors **Moin Shaikh** and **Prajwal**.
 
 The project focuses on automating the creation and verification of integrated circuit layouts. Given a circuit schematic (in this case, a rectifier consisting of 2 MOSFETs and a capacitor), the goal is to:
 
