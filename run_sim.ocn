@@ -1,0 +1,60 @@
+; --- 1. SETUP ---
+simulator('spectre)
+design("trying_tsmc" "tb_moscap" "schematic")
+modelFile(
+    '("/vlsi/pdk/tsmc_gp_65_2f/tn65cmsp018k3_1_0c_2f/models/spectre/TT.scs" "tt")
+    '("/vlsi/pdk/tsmc_gp_65_2f/tn65cmsp018k3_1_0c_2f/models/spectre/crn65gplus_2d5_lk_v1d0.scs" "tt_rfmos")
+    '("/vlsi/pdk/tsmc_gp_65_2f/tn65cmsp018k3_1_0c_2f/models/spectre/crn65gplus_2d5_lk_v1d0.scs" "tt_rfmim")
+    '("/vlsi/pdk/tsmc_gp_65_2f/tn65cmsp018k3_1_0c_2f/models/spectre/crn65gplus_2d5_lk_v1d0.scs" "tt_na")
+)
+include("/home/users/madhava/work_tsmc_gp_65_2f/mos_cap_test_trying_via.pex.netlist")
+
+; --- 2. THE SWEEP (To find Pin = -30) ---
+; Since Pin = -30 is what you need, we sweep P_avl from -10 to 5
+; to cover the range where Pin hits -30.
+p_start = -10.0
+p_stop  = 5.0
+p_step  = 0.5
+p_levels = nil
+for(i 0 round((p_stop - p_start)/p_step) p_levels = cons(p_start + i*p_step p_levels))
+p_levels = reverse(p_levels)
+
+analysis('hb ?funds '("2.4G") ?nfreqs '("10") ?errpreset "moderate")
+
+out = outfile("terminal_results.csv" "w")
+fprintf(out "P_avl,Pin_dBm,PCE_Percent\n")
+
+foreach(p p_levels
+    desVar("P_avl" p)
+    desVar("v_sweep" 0.6)
+    run()
+
+    if(openResults() then
+        selectResult('hb_fd) ; HB Frequency Domain
+
+        ; --- YOUR GUI EXPRESSIONS TRANSLATED ---
+        ; Pin calculation from your screenshot:
+        v_in_re = real(harmonic(v("/VIN") 1))
+        v_in_im = imag(harmonic(v("/VIN") 1))
+        i_in_re = real(harmonic(i("/L1/PLUS") 1))
+        i_in_im = imag(harmonic(i("/L1/PLUS") 1))
+
+        pin_watts = 0.5 * ( (v_in_re * i_in_re) + (v_in_im * i_in_im) )
+        pin_dbm = 10 * log10(pin_watts / 0.001)
+
+        ; PCE calculation from your screenshot (RL=300k):
+        v_out_dc = real(harmonic(v("/VOUT") 0))
+        p_out_dc = (v_out_dc * v_out_dc) / 300000.0
+        pce = (100.0 * abs(p_out_dc)) / pin_watts
+
+        fprintf(out "%g,%g,%g\n" p pin_dbm pce)
+
+        ; Stop and tell me when we hit your target
+        if(pin_dbm >= -30.5 && pin_dbm <= -29.5 then
+            printf(">>> TARGET FOUND: Pin = %g dBm | PCE = %g%%\n" pin_dbm pce)
+        )
+    )
+)
+close(out)
+exit()
+
